@@ -1,13 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import Hero from './components/Hero';
+import Home from './components/Home';
 import DebateRoom from './components/DebateRoom';
 import AdminPanel from './components/AdminPanel';
 import AdminLogin from './components/AdminLogin';
 import RoleSelectionModal from './components/RoleSelectionModal';
+import Profile from './components/Profile';
+import CreateDebate from './components/CreateDebate';
+import Rules from './components/Rules';
+import DebatesList from './components/DebatesList';
+import Leaderboard from './components/Leaderboard';
 import { Debate, UserRole, DebaterProfile, ArgumentNode, Notification } from './types';
-import { Users, Clock, ArrowRight, Trophy, Cpu, TrendingUp, ShieldCheck, Lock } from 'lucide-react';
 
 // Enhanced Mock Data with Tree Structure
 const MOCK_ARGUMENT_TREE: ArgumentNode[] = [
@@ -194,6 +198,12 @@ export const App: React.FC = () => {
     setCurrentView('room');
   };
 
+  const handleCreateDebate = (newDebate: Debate) => {
+      setDebates([newDebate, ...debates]);
+      setActiveDebate(newDebate);
+      setCurrentView('room');
+  };
+
   const renderContent = () => {
     // ADMIN LOGIN VIEW
     if (currentView === 'login') {
@@ -218,6 +228,31 @@ export const App: React.FC = () => {
       return <AdminPanel debates={debates} setDebates={setDebates} setCurrentView={setCurrentView} notifications={notifications} />;
     }
 
+    // PROFILE VIEW
+    if (currentView === 'profile') {
+        return <Profile currentUserRole={currentUserRole} />;
+    }
+
+    // CREATE DEBATE VIEW
+    if (currentView === 'create') {
+        return <CreateDebate onCreate={handleCreateDebate} onCancel={() => setCurrentView('home')} />;
+    }
+
+    // RULES VIEW
+    if (currentView === 'rules') {
+        return <Rules />;
+    }
+
+    // ALL DEBATES VIEW
+    if (currentView === 'debates') {
+        return <DebatesList debates={debates} onSelectDebate={handleStartDebate} />;
+    }
+
+    // LEADERBOARD VIEW
+    if (currentView === 'leaderboard') {
+        return <Leaderboard topDebaters={TOP_DEBATERS} />;
+    }
+
     // LIVE DEBATE ROOM VIEW
     if (currentView === 'room' && activeDebate) {
       const liveDebateData = debates.find(d => d.id === activeDebate.id) || activeDebate;
@@ -236,209 +271,21 @@ export const App: React.FC = () => {
       );
     }
 
-    // HOME PAGE View
+    // HOME PAGE View (Extracted to Component)
     return (
-      <div className="animate-in fade-in duration-500">
-        <Hero onStart={() => {
-            const live = debates.find(d => d.status === 'LIVE');
-            if (live) handleStartDebate(live);
-            else document.getElementById('debates-list')?.scrollIntoView({behavior: 'smooth'});
-        }} />
-        
-        {/* Main Content Area */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 space-y-24">
-          
-          {/* Live & Upcoming Section */}
-          <section id="debates-list">
-            <div className="flex items-center justify-between mb-10">
-              <div>
-                  <h2 className="text-3xl font-bold text-white flex items-center gap-3">
-                    <span className="w-2 h-8 bg-indigo-500 rounded-sm"></span>
-                    Live Debate Arena
-                  </h2>
-                  <p className="text-slate-400 mt-2 ml-5">Watch real-time intellectual combat in our structured tree-debate format.</p>
-              </div>
-              <button 
-                onClick={() => setCurrentView('debates')}
-                className="text-indigo-400 hover:text-indigo-300 font-medium flex items-center gap-1 group"
-              >
-                View All Debates <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </button>
-            </div>
-
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {debates.map((debate) => (
-                <div 
-                  key={debate.id} 
-                  onClick={() => handleStartDebate(debate)}
-                  className="group bg-slate-800 rounded-2xl overflow-hidden border border-slate-700 hover:border-indigo-500/50 transition-all cursor-pointer hover:shadow-2xl hover:shadow-indigo-900/20 transform hover:-translate-y-2 duration-300"
-                >
-                  <div className="relative h-56 overflow-hidden">
-                    <img src={debate.imageUrl} alt={debate.topic} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent opacity-80"></div>
-                    
-                    <div className="absolute top-4 right-4 bg-slate-900/90 backdrop-blur text-xs font-bold px-3 py-1.5 rounded-lg text-white border border-slate-700 shadow-lg">
-                      {debate.status === 'LIVE' && <span className="flex items-center gap-2 text-red-400"><span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> LIVE NOW</span>}
-                      {debate.status === 'UPCOMING' && <span className="text-blue-300 flex items-center gap-2"><Clock className="w-3 h-3" /> UPCOMING</span>}
-                      {debate.status === 'COMPLETED' && <span className="text-slate-300">COMPLETED</span>}
-                    </div>
-
-                    <div className="absolute bottom-4 left-4">
-                        <span className="text-[10px] font-bold uppercase tracking-wider bg-indigo-600/90 text-white px-2 py-1 rounded mb-2 inline-block">
-                            {debate.category}
-                        </span>
-                    </div>
-                  </div>
-                  
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold text-white mb-3 line-clamp-2 group-hover:text-indigo-400 transition-colors leading-tight">
-                      {debate.topic}
-                    </h3>
-                    <p className="text-slate-400 text-sm mb-6 line-clamp-2">
-                      {debate.description}
-                    </p>
-                    
-                    <div className="flex items-center justify-between text-sm text-slate-500 border-t border-slate-700 pt-4">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-4 h-4" />
-                        <span className="font-medium text-slate-300">{debate.viewers.toLocaleString()}</span>
-                      </div>
-                      <div className="flex -space-x-2">
-                          <div className="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-[10px] text-white font-bold border-2 border-slate-800 ring-2 ring-slate-800" title={debate.proUser}>PRO</div>
-                          <div className="w-8 h-8 rounded-full bg-red-900 flex items-center justify-center text-[10px] text-white font-bold border-2 border-slate-800 ring-2 ring-slate-800" title={debate.conUser}>CON</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Leaderboard Section */}
-          <section className="bg-slate-900 rounded-3xl p-8 md:p-12 border border-slate-800 relative overflow-hidden">
-             <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none"></div>
-             
-             <div className="flex flex-col md:flex-row gap-12 items-center relative z-10">
-                <div className="md:w-1/3">
-                    <h2 className="text-3xl font-bold text-white mb-4">Global Leaderboard</h2>
-                    <p className="text-slate-400 mb-8 leading-relaxed">
-                        Rise through the ranks by winning debates and earning high logic scores from our AI judges. Prove your rhetorical dominance.
-                    </p>
-                    <button className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-lg font-medium transition-colors border border-slate-700">
-                        View Full Rankings
-                    </button>
-                </div>
-                
-                <div className="md:w-2/3 grid grid-cols-1 sm:grid-cols-3 gap-6 w-full">
-                    {TOP_DEBATERS.map((debater, index) => (
-                        <div key={debater.id} className={`relative bg-slate-800 rounded-xl p-6 border border-slate-700 flex flex-col items-center text-center ${index === 0 ? 'ring-2 ring-amber-500 transform scale-105 shadow-2xl shadow-amber-900/20' : ''}`}>
-                            {index === 0 && <div className="absolute -top-4 bg-amber-500 text-black font-bold px-4 py-1 rounded-full text-xs shadow-lg uppercase tracking-wider flex items-center gap-1"><Trophy className="w-3 h-3" /> #1 Champion</div>}
-                            <div className="relative mb-4">
-                                <img src={debater.avatarUrl} className="w-20 h-20 rounded-full object-cover ring-4 ring-slate-700" alt={debater.name} />
-                                <div className="absolute bottom-0 right-0 bg-slate-900 text-white text-xs font-bold px-2 py-0.5 rounded border border-slate-700">{debater.rank}</div>
-                            </div>
-                            <h3 className="text-lg font-bold text-white mb-1">{debater.name}</h3>
-                            <div className="flex items-center gap-2 mb-4 justify-center flex-wrap">
-                                {debater.badges.map(badge => (
-                                    <span key={badge} className="text-[10px] bg-indigo-900/30 text-indigo-300 px-2 py-0.5 rounded">{badge}</span>
-                                ))}
-                            </div>
-                            <div className="grid grid-cols-2 gap-2 w-full mt-auto pt-4 border-t border-slate-700">
-                                <div>
-                                    <div className="text-lg font-bold text-green-400">{debater.winRate}%</div>
-                                    <div className="text-[10px] text-slate-500 uppercase">Win Rate</div>
-                                </div>
-                                <div>
-                                    <div className="text-lg font-bold text-white">{debater.debatesCount}</div>
-                                    <div className="text-[10px] text-slate-500 uppercase">Debates</div>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-             </div>
-          </section>
-
-          {/* Features Grid */}
-          <section className="py-8">
-              <div className="text-center mb-16">
-                  <h2 className="text-3xl font-bold text-white mb-4">Why LogicallyDebate?</h2>
-                  <p className="text-slate-400 max-w-2xl mx-auto">We combine traditional debate structures with cutting-edge AI to create the most fair and engaging platform on the web.</p>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-8">
-                  <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:bg-slate-800 transition-colors">
-                      <div className="w-12 h-12 bg-indigo-500/10 rounded-xl flex items-center justify-center mb-6">
-                          <Cpu className="w-6 h-6 text-indigo-400" />
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-3">AI Arbiters</h3>
-                      <p className="text-slate-400 leading-relaxed">
-                          Our Gemini-powered judges analyze arguments for logical fallacies, evidence quality, and rhetorical strength in real-time.
-                      </p>
-                  </div>
-                  <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:bg-slate-800 transition-colors">
-                      <div className="w-12 h-12 bg-pink-500/10 rounded-xl flex items-center justify-center mb-6">
-                          <TrendingUp className="w-6 h-6 text-pink-400" />
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-3">Live Sentiment</h3>
-                      <p className="text-slate-400 leading-relaxed">
-                          Audience members vote throughout the debate, creating a dynamic "tug-of-war" visual that represents the swaying of public opinion.
-                      </p>
-                  </div>
-                  <div className="p-6 rounded-2xl bg-slate-800/50 border border-slate-700 hover:bg-slate-800 transition-colors">
-                      <div className="w-12 h-12 bg-teal-500/10 rounded-xl flex items-center justify-center mb-6">
-                          <ShieldCheck className="w-6 h-6 text-teal-400" />
-                      </div>
-                      <h3 className="text-xl font-bold text-white mb-3">Fair Play System</h3>
-                      <p className="text-slate-400 leading-relaxed">
-                          Strict moderation tools and structured speaking times ensure that debates remain civil, focused, and productive.
-                      </p>
-                  </div>
-              </div>
-          </section>
-        </div>
-
-        {/* Footer */}
-        <footer className="bg-slate-900 border-t border-slate-800 py-12 mt-auto">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid md:grid-cols-4 gap-8">
-                    <div className="col-span-1 md:col-span-2">
-                        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-cyan-400">
-                          LogicallyDebate
-                        </span>
-                        <p className="mt-4 text-slate-400 max-w-sm">
-                            The internet's premier arena for structured, logical discourse. Join the conversation today.
-                        </p>
-                    </div>
-                    <div>
-                        <h4 className="text-white font-bold mb-4">Platform</h4>
-                        <ul className="space-y-2 text-slate-400 text-sm">
-                            <li><a href="#" className="hover:text-indigo-400">Live Debates</a></li>
-                            <li><a href="#" className="hover:text-indigo-400">Rankings</a></li>
-                            <li><a href="#" className="hover:text-indigo-400">Rules</a></li>
-                            <li><a href="#" className="hover:text-indigo-400">Mobile App</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 className="text-white font-bold mb-4">Community</h4>
-                        <ul className="space-y-2 text-slate-400 text-sm">
-                            <li><a href="#" className="hover:text-indigo-400">Discord Server</a></li>
-                            <li><a href="#" className="hover:text-indigo-400">Twitter / X</a></li>
-                            <li><button onClick={() => setCurrentView('login')} className="hover:text-indigo-400 text-left w-full flex items-center gap-1"><Lock className="w-3 h-3"/> Staff Access</button></li>
-                        </ul>
-                    </div>
-                </div>
-                <div className="mt-12 pt-8 border-t border-slate-800 text-center text-slate-500 text-sm">
-                    &copy; 2024 LogicallyDebate Inc. All rights reserved.
-                </div>
-            </div>
-        </footer>
-      </div>
+        <Home 
+            debates={debates}
+            topDebaters={TOP_DEBATERS}
+            onStartDebate={handleStartDebate}
+            onViewAllDebates={() => setCurrentView('debates')}
+            onViewLeaderboard={() => setCurrentView('leaderboard')}
+            onLearnMore={() => setCurrentView('rules')}
+        />
     );
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30 flex flex-col relative">
+    <div className="min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-indigo-500/30 flex flex-col relative w-full overflow-x-hidden">
       <RoleSelectionModal 
         isOpen={showRoleModal} 
         onSelectRole={handleRoleSelection}

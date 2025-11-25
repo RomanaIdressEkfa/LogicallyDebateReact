@@ -1,7 +1,13 @@
-import React from 'react';
-import { MessageSquare, Zap, Trophy } from 'lucide-react';
 
-const Hero: React.FC<{ onStart: () => void }> = ({ onStart }) => {
+import React from 'react';
+import { MessageSquare, Zap, Trophy, BookOpen } from 'lucide-react';
+
+interface HeroProps {
+  onStart: () => void;
+  onLearnMore: () => void;
+}
+
+const Hero: React.FC<HeroProps> = ({ onStart, onLearnMore }) => {
   return (
     <div className="relative bg-slate-900 overflow-hidden">
       <div className="max-w-7xl mx-auto">
@@ -22,8 +28,11 @@ const Hero: React.FC<{ onStart: () => void }> = ({ onStart }) => {
                   </button>
                 </div>
                 <div className="mt-3 sm:mt-0 sm:ml-3">
-                  <button className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-100 bg-slate-800 hover:bg-slate-700 md:py-4 md:text-lg md:px-10 transition-all">
-                    Learn Rules
+                  <button 
+                    onClick={onLearnMore}
+                    className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-indigo-100 bg-slate-800 hover:bg-slate-700 md:py-4 md:text-lg md:px-10 transition-all gap-2"
+                  >
+                    <BookOpen className="w-5 h-5" /> Learn Rules
                   </button>
                 </div>
               </div>
