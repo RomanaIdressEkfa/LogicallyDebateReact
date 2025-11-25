@@ -1,0 +1,5 @@
+{
+  "name": "LogicallyDebate",
+  "description": "A high-performance React application for live, real-time debating. Features role-based views (Pro, Con, Judge, Audience) and AI-powered argument analysis using Gemini.",
+  "requestFramePermissions": []
+}
