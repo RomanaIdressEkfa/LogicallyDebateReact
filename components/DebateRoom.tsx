@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, ThumbsUp, ThumbsDown, ShieldAlert, Gavel, Cpu, Mic, Video, LogOut, AlertOctagon, Plus, GitMerge, Reply } from 'lucide-react';
+import { Send, ThumbsUp, ThumbsDown, ShieldAlert, Gavel, Cpu, Mic, Video, LogOut, AlertOctagon, Plus, GitMerge, Reply, Users } from 'lucide-react';
 import { Debate, UserRole, Message, AnalysisResult, ArgumentNode } from '../types';
 import { analyzeDebateRound } from '../services/geminiService';
 import DebateTree from './DebateTree';
@@ -20,8 +20,23 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
   const [replyType, setReplyType] = useState<'ARGUMENT' | 'REBUTTAL' | 'AGREEMENT' | 'DISAGREEMENT'>('ARGUMENT');
   
   const [votes, setVotes] = useState(debate.votes);
+  const [viewers, setViewers] = useState(debate.viewers);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AnalysisResult | null>(null);
+
+  // Simulate Live Viewer Fluctuation
+  useEffect(() => {
+    if (debate.status !== 'LIVE') return;
+    
+    const interval = setInterval(() => {
+        setViewers(prev => {
+            const change = Math.floor(Math.random() * 7) - 3; // Fluctuate between -3 and +3
+            return Math.max(0, prev + change);
+        });
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [debate.status]);
 
   const handleTreeReply = (nodeId: string, type: 'REBUTTAL' | 'AGREEMENT' | 'DISAGREEMENT') => {
       setReplyingTo(nodeId);
@@ -111,24 +126,27 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] bg-slate-50 w-full">
       {/* Header Info */}
-      <div className="bg-slate-950 border-b border-slate-800 px-6 py-4 flex justify-between items-center shrink-0 shadow-md z-20">
+      <div className="bg-slate-950 border-b border-slate-800 px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center shrink-0 shadow-md z-20 gap-4 md:gap-0">
         <div className="flex items-center gap-4">
             <div>
                 <h2 className="text-xl md:text-2xl font-black text-white flex items-center gap-3">
-                    <span className="relative flex h-3 w-3">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                    </span>
-                    {debate.topic}
+                    {debate.status === 'LIVE' && (
+                        <span className="relative flex h-3 w-3 shrink-0">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                        </span>
+                    )}
+                    <span className="line-clamp-1">{debate.topic}</span>
                 </h2>
                 <div className="flex items-center gap-4 mt-1">
                     <span className="text-slate-400 text-xs font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">ID: {debate.id}</span>
                     <span className="text-indigo-400 text-xs font-bold flex items-center gap-1"><ShieldAlert className="w-3 h-3"/> AI Moderation Active</span>
+                    <span className="text-red-400 text-xs font-bold flex items-center gap-1"><Users className="w-3 h-3"/> {viewers.toLocaleString()} Watching</span>
                 </div>
             </div>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 w-full md:w-auto justify-end">
             {currentUserRole === UserRole.ADMIN && (
                 <button 
                     onClick={handleForceEnd}
@@ -143,9 +161,9 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden w-full">
+      <div className="flex-1 flex flex-col md:flex-row overflow-hidden w-full">
           {/* Main Debate Tree Area - FULL WIDTH */}
-          <div className="flex-1 overflow-y-auto bg-slate-100 relative custom-scrollbar">
+          <div className="flex-1 overflow-y-auto bg-slate-100 relative custom-scrollbar order-2 md:order-1">
               {/* Background Grid Pattern */}
               <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
                    style={{ 
@@ -180,39 +198,39 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
           </div>
 
           {/* Right Sidebar: Stats & Controls */}
-          <div className="w-96 bg-slate-950 border-l border-slate-800 flex flex-col shrink-0 shadow-2xl z-30">
+          <div className="w-full md:w-96 bg-slate-950 border-l border-slate-800 flex flex-col shrink-0 shadow-2xl z-30 order-1 md:order-2">
               {/* Video Feeds */}
-              <div className="grid grid-rows-2 h-72 gap-1 bg-black p-1">
-                 <div className="relative group overflow-hidden rounded-t-lg bg-slate-900">
+              <div className="grid grid-cols-2 md:grid-rows-2 md:grid-cols-1 h-40 md:h-72 gap-1 bg-black p-1">
+                 <div className="relative group overflow-hidden rounded md:rounded-t-lg bg-slate-900">
                      <img src={debate.imageUrl} className="w-full h-full object-cover opacity-60" />
                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
                      <div className="absolute top-2 left-2 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">PRO</div>
                      <div className="absolute bottom-3 left-3">
-                         <div className="text-white font-bold text-base truncate shadow-black drop-shadow-md">{debate.proUser}</div>
-                         <div className="flex items-center gap-1 text-green-400 text-xs"><Mic className="w-3 h-3" /> Speaking</div>
+                         <div className="text-white font-bold text-xs md:text-base truncate shadow-black drop-shadow-md">{debate.proUser}</div>
+                         <div className="flex items-center gap-1 text-green-400 text-[10px] md:text-xs"><Mic className="w-3 h-3" /> Speaking</div>
                      </div>
                  </div>
-                 <div className="relative group overflow-hidden rounded-b-lg bg-slate-900">
+                 <div className="relative group overflow-hidden rounded md:rounded-b-lg bg-slate-900">
                      <img src={`https://picsum.photos/seed/${debate.id}con/400/300`} className="w-full h-full object-cover opacity-60" />
                      <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-transparent to-transparent"></div>
                      <div className="absolute top-2 right-2 bg-red-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shadow">CON</div>
                      <div className="absolute bottom-3 right-3 text-right">
-                         <div className="text-white font-bold text-base truncate shadow-black drop-shadow-md">{debate.conUser}</div>
-                         <div className="flex items-center justify-end gap-1 text-slate-500 text-xs"><Mic className="w-3 h-3" /> Muted</div>
+                         <div className="text-white font-bold text-xs md:text-base truncate shadow-black drop-shadow-md">{debate.conUser}</div>
+                         <div className="flex items-center justify-end gap-1 text-slate-500 text-[10px] md:text-xs"><Mic className="w-3 h-3" /> Muted</div>
                      </div>
                  </div>
               </div>
 
               {/* Voting */}
-              <div className="p-6 border-b border-slate-800 bg-slate-900">
+              <div className="p-4 md:p-6 border-b border-slate-800 bg-slate-900">
                   <div className="flex justify-between items-end mb-3">
                       <div className="text-left">
                           <span className="block text-xs text-blue-400 font-bold uppercase tracking-wider">Pro Support</span>
-                          <span className="text-2xl font-black text-white">{votes.pro}</span>
+                          <span className="text-xl md:text-2xl font-black text-white">{votes.pro}</span>
                       </div>
                       <div className="text-right">
                           <span className="block text-xs text-red-400 font-bold uppercase tracking-wider">Con Support</span>
-                          <span className="text-2xl font-black text-white">{votes.con}</span>
+                          <span className="text-xl md:text-2xl font-black text-white">{votes.con}</span>
                       </div>
                   </div>
                   
