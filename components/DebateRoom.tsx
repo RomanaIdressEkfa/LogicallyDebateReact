@@ -4,6 +4,7 @@ import { Send, ThumbsUp, ThumbsDown, ShieldAlert, Gavel, Cpu, Mic, Video, LogOut
 import { Debate, UserRole, Message, AnalysisResult, ArgumentNode, Toast } from '../types';
 import { analyzeDebateRound } from '../services/geminiService';
 import DebateTree from './DebateTree';
+import AdBanner from './AdBanner';
 
 interface DebateRoomProps {
   debate: Debate;
@@ -75,7 +76,7 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
                 if (node.id === targetId) {
                     return { ...node, children: [...node.children, newNode] };
                 }
-                if (node.children.length > 0) {
+                if (node.children?.length > 0) {
                     return { ...node, children: addChildToNode(node.children, targetId) };
                 }
                 return node;
@@ -96,9 +97,9 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
     addToast('INFO', 'Running Gemini AI Analysis...');
     const flatContent: Message[] = [];
     const traverse = (nodes: ArgumentNode[]) => {
-        nodes.forEach(n => {
+        nodes?.forEach(n => {
             flatContent.push({ id: n.id, sender: n.author, role: n.role === 'JUDGE' ? 'JUDGE' : n.role, content: n.content, timestamp: n.timestamp });
-            traverse(n.children);
+            if (n.children) traverse(n.children);
         });
     };
     traverse(argumentTree);
@@ -171,7 +172,7 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
               </div>
               
               <div className="w-full px-4 md:px-12 py-12 space-y-16 min-h-full">
-                  {argumentTree.length === 0 ? (
+                  {argumentTree?.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-slate-400 mt-20">
                           <div className="w-24 h-24 bg-slate-200 rounded-full flex items-center justify-center mb-6">
                              <GitMerge className="w-12 h-12 text-slate-400" />
@@ -180,7 +181,7 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
                           <p className="max-w-md text-center text-slate-500">No arguments have been made yet. Pro debater usually starts the opening statement.</p>
                       </div>
                   ) : (
-                      argumentTree.map((rootNode) => (
+                      argumentTree?.map((rootNode) => (
                           <div key={rootNode.id} className="w-full">
                               <div className="flex justify-center mb-8">
                                   <span className="bg-slate-200 text-slate-600 text-[10px] font-black px-4 py-1 rounded-full uppercase tracking-[0.2em] border border-slate-300">New Argument Chain</span>
@@ -247,6 +248,11 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
                       </button>
                   </div>
               </div>
+
+              {/* AdBanner in Sidebar - TEMPORARILY DISABLED */}
+              {/* <div className="px-4">
+                 <AdBanner dataAdSlot="sidebar-ad" className="min-h-[150px]" />
+              </div> */}
 
               <div id="input-area" className="flex-1 p-4 flex flex-col bg-slate-950">
                   {canType ? (

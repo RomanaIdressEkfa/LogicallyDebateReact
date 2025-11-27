@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { UserRole, UserProfileDetails, Debate } from '../types';
-import { Trophy, TrendingUp, Target, Shield, Clock, Grid, MapPin, Briefcase, GraduationCap, Link2, BookOpen, UserCheck, Swords, Gavel, Calendar, ArrowRight, AlertTriangle } from 'lucide-react';
+import { Trophy, Shield, Clock, MapPin, Briefcase, GraduationCap, Link2, BookOpen, UserCheck, Swords, Gavel, Calendar, ArrowRight, AlertTriangle } from 'lucide-react';
 
 interface ProfileProps {
   currentUserRole: UserRole;
@@ -87,7 +87,7 @@ const Profile: React.FC<ProfileProps> = ({ currentUserRole, profileData, userPro
   const isVerified = userProfileDetails?.isVerified;
 
   // Filter debates for the "My Arena" section
-  const upcomingDebates = debates.filter(d => d.status !== 'COMPLETED');
+  const upcomingDebates = debates?.filter(d => d.status !== 'COMPLETED') || [];
   
   // For Judges: Show everything as potential assignment if verified
   // For Debaters: Show debates they are assigned to, or open ones
@@ -143,7 +143,7 @@ const Profile: React.FC<ProfileProps> = ({ currentUserRole, profileData, userPro
                      <h1 className="text-3xl md:text-4xl font-black text-white">{displayName}</h1>
                      <div className="flex flex-wrap items-center justify-center md:justify-start gap-3 mt-2">
                          <span className="flex items-center gap-1.5 px-3 py-1 bg-slate-800 rounded-full text-xs font-bold text-slate-300 border border-slate-700">
-                             <Shield className="w-3.5 h-3.5" /> {userStats.role.replace('_', ' ')}
+                             <Shield className="w-3.5 h-3.5" /> {userStats.role?.replace('_', ' ')}
                          </span>
                          {userProfileDetails?.isVerified ? (
                              <span className="bg-blue-500/10 text-blue-400 text-xs px-3 py-1 rounded-full border border-blue-500/20 flex items-center gap-1.5 font-bold">
@@ -163,7 +163,7 @@ const Profile: React.FC<ProfileProps> = ({ currentUserRole, profileData, userPro
                  </div>
                  
                  <div className="flex flex-wrap gap-2 justify-center md:justify-start pt-2">
-                    {userStats.badges && userStats.badges.map((badge: any, idx: number) => (
+                    {userStats.badges?.map((badge: any, idx: number) => (
                        <span key={idx} className={`px-3 py-1 rounded-lg text-xs font-bold border flex items-center gap-1 shadow-sm ${badge.color}`}>
                           {badge.icon} {badge.name}
                        </span>
@@ -270,7 +270,7 @@ const Profile: React.FC<ProfileProps> = ({ currentUserRole, profileData, userPro
                     <div className="mt-6 pt-6 border-t border-slate-800">
                         <h4 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">Areas of Expertise</h4>
                         <div className="flex flex-wrap gap-2">
-                            {userProfileDetails.expertise.map((exp, i) => (
+                            {userProfileDetails.expertise?.map((exp, i) => (
                                 <span key={i} className="px-3 py-1.5 bg-slate-800 text-slate-300 rounded-lg text-xs font-medium border border-slate-700 shadow-sm">
                                     {exp}
                                 </span>

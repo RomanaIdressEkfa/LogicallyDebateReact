@@ -1,21 +1,18 @@
 
 import React, { useState } from 'react';
 import Hero from './Hero';
+// import AdBanner from './AdBanner'; // Ads disabled temporarily
 import { Debate, DebaterProfile } from '../types';
 import { 
   Activity, 
   ArrowRight, 
   Users, 
-  Clock, 
-  Cpu, 
   TrendingUp, 
   ShieldCheck, 
-  MessageSquare,
   BarChart2,
   Quote,
   Flame,
   Trophy,
-  Zap,
   Globe,
   CheckCircle2,
   BrainCircuit
@@ -64,6 +61,9 @@ const Home: React.FC<HomeProps> = ({ debates, topDebaters, onStartDebate, onView
       {/* Main Container - FLUID WIDTH */}
       <div className="w-full px-4 md:px-12 py-16 space-y-32">
         
+        {/* AD: Top Leaderboard - TEMPORARILY DISABLED */}
+        {/* <AdBanner dataAdSlot="1234567890" className="max-w-4xl mx-auto min-h-[120px]" /> */}
+
         {/* SECTION 1: Featured Live Debate (Hero Card) */}
         <section id="debates-list" className="w-full">
             <div className="flex items-end justify-between mb-8 px-2">
@@ -142,7 +142,7 @@ const Home: React.FC<HomeProps> = ({ debates, topDebaters, onStartDebate, onView
             </div>
         </section>
 
-        {/* SECTION 2: Value Props (Why Join?) */}
+        {/* SECTION 2: Why Join? */}
         <section className="w-full bg-gradient-to-b from-primary-900/20 to-slate-950 rounded-[3rem] p-8 md:p-16 border border-slate-800/50 relative overflow-hidden">
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-600/10 rounded-full blur-[100px] -mr-32 -mt-32 pointer-events-none"></div>
             
@@ -184,6 +184,9 @@ const Home: React.FC<HomeProps> = ({ debates, topDebaters, onStartDebate, onView
             </div>
         </section>
 
+        {/* AD: Middle Content - TEMPORARILY DISABLED */}
+        {/* <AdBanner dataAdSlot="0987654321" className="max-w-4xl mx-auto" /> */}
+
         {/* SECTION 3: Hall of Fame (Horizontal Scroll) */}
         <section className="w-full">
             <div className="flex items-center justify-between mb-10 px-4">
@@ -218,6 +221,54 @@ const Home: React.FC<HomeProps> = ({ debates, topDebaters, onStartDebate, onView
                     </div>
                 ))}
             </div>
+        </section>
+
+        {/* NEW SECTION: Meet the High Council */}
+        <section className="bg-slate-900 rounded-[3rem] p-12 border border-slate-800 relative overflow-hidden">
+             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5"></div>
+             
+             <div className="flex flex-col md:flex-row gap-12 items-center relative z-10">
+                 <div className="flex-1">
+                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500/10 rounded-full border border-amber-500/20 text-amber-400 font-bold text-xs uppercase tracking-widest mb-6">
+                         <Trophy className="w-4 h-4" /> The High Council
+                     </div>
+                     <h2 className="text-4xl font-black text-white mb-6">Judged by the Best</h2>
+                     <p className="text-slate-400 text-lg leading-relaxed mb-8">
+                         Our Elite Judges aren't just algorithms. We feature world-renowned professors, philosophers, and veteran debaters who provide expert feedback on high-level matches.
+                     </p>
+                     <div className="flex gap-4">
+                         <div className="flex -space-x-4">
+                             {[1,2,3,4].map(i => (
+                                 <div key={i} className="w-12 h-12 rounded-full border-2 border-slate-900 bg-slate-800 overflow-hidden">
+                                     <img src={`https://i.pravatar.cc/100?img=${i + 10}`} alt="Judge" className="w-full h-full object-cover" />
+                                 </div>
+                             ))}
+                         </div>
+                         <div className="flex flex-col justify-center">
+                             <span className="text-white font-bold">50+ Experts</span>
+                             <span className="text-slate-500 text-xs">Active Now</span>
+                         </div>
+                     </div>
+                 </div>
+                 
+                 <div className="flex-1 w-full">
+                     <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 relative">
+                         <Quote className="w-12 h-12 text-slate-800 absolute top-4 right-4" />
+                         <div className="flex items-center gap-4 mb-4">
+                             <img src="https://i.pravatar.cc/100?img=12" alt="Judge" className="w-14 h-14 rounded-full border-2 border-primary-500" />
+                             <div>
+                                 <div className="text-white font-bold">Dr. Eleanor Vance</div>
+                                 <div className="text-primary-400 text-xs font-bold uppercase">Head of Ethics, Oxford</div>
+                             </div>
+                         </div>
+                         <p className="text-slate-300 italic mb-4">"LogicallyDebate is the only platform where I see genuine intellectual rigor. The 'Steel Man' requirement changes everything."</p>
+                         <div className="flex gap-2">
+                             <span className="text-[10px] bg-slate-900 text-slate-500 px-2 py-1 rounded border border-slate-800">Philosophy</span>
+                             <span className="text-[10px] bg-slate-900 text-slate-500 px-2 py-1 rounded border border-slate-800">Ethics</span>
+                         </div>
+                     </div>
+                 </div>
+             </div>
         </section>
 
         {/* SECTION 4: Interactive Widgets Grid */}
@@ -287,6 +338,8 @@ const Home: React.FC<HomeProps> = ({ debates, topDebaters, onStartDebate, onView
             </div>
         </section>
 
+        {/* AD: Bottom Footer - TEMPORARILY DISABLED */}
+        {/* <AdBanner dataAdSlot="1122334455" className="max-w-4xl mx-auto" /> */}
       </div>
 
       {/* Footer */}

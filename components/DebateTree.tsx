@@ -175,7 +175,7 @@ const DebateTree: React.FC<DebateTreeProps> = ({
         <div className="flex items-start justify-center w-full relative">
            {/* IMPORTANT: The container gap determines tree spread */}
            <div className="flex gap-4 md:gap-8 pt-2">
-               {node.children.map((child, index) => (
+               {node.children?.map((child, index) => (
                  <DebateTree 
                     key={child.id}
                     node={child} 

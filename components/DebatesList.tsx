@@ -12,13 +12,13 @@ const DebatesList: React.FC<DebatesListProps> = ({ debates, onSelectDebate }) =>
   const [filter, setFilter] = useState<'ALL' | 'LIVE' | 'UPCOMING' | 'COMPLETED'>('ALL');
   const [search, setSearch] = useState('');
 
-  const filteredDebates = debates.filter(d => {
+  const filteredDebates = debates?.filter(d => {
     const matchesFilter = filter === 'ALL' || d.status === filter;
     const matchesSearch = d.topic.toLowerCase().includes(search.toLowerCase()) || 
                           d.proUser.toLowerCase().includes(search.toLowerCase()) || 
                           d.conUser.toLowerCase().includes(search.toLowerCase());
     return matchesFilter && matchesSearch;
-  });
+  }) || [];
 
   return (
     <div className="min-h-[calc(100vh-80px)] bg-slate-950 p-6 md:p-12 animate-in fade-in duration-500 w-full">
@@ -28,7 +28,7 @@ const DebatesList: React.FC<DebatesListProps> = ({ debates, onSelectDebate }) =>
         <div className="flex flex-col md:flex-row justify-between items-end md:items-center gap-4 border-b border-slate-800 pb-8">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Debate Archives</h1>
-            <p className="text-slate-400">Browse {debates.length} active and historical discussions.</p>
+            <p className="text-slate-400">Browse {debates?.length || 0} active and historical discussions.</p>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
