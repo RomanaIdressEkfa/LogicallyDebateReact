@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, ThumbsUp, ThumbsDown, ShieldAlert, Gavel, Cpu, Mic, Video, LogOut, AlertOctagon, Plus, GitMerge, Reply, Users } from 'lucide-react';
-import { Debate, UserRole, Message, AnalysisResult, ArgumentNode } from '../types';
+import { Debate, UserRole, Message, AnalysisResult, ArgumentNode, Toast } from '../types';
 import { analyzeDebateRound } from '../services/geminiService';
 import DebateTree from './DebateTree';
 
@@ -10,10 +10,11 @@ interface DebateRoomProps {
   currentUserRole: UserRole;
   onLeave: () => void;
   onEndDebate: (debateId: string) => void;
+  addToast: (type: Toast['type'], message: string) => void;
 }
 
-const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeave, onEndDebate }) => {
-  const [messages, setMessages] = useState<Message[]>(debate.messages); // Keep legacy linear chat for transcript if needed
+const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeave, onEndDebate, addToast }) => {
+  const [messages, setMessages] = useState<Message[]>(debate.messages);
   const [argumentTree, setArgumentTree] = useState<ArgumentNode[]>(debate.argumentTree);
   const [inputText, setInputText] = useState('');
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -24,13 +25,12 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [aiAnalysis, setAiAnalysis] = useState<AnalysisResult | null>(null);
 
-  // Simulate Live Viewer Fluctuation
   useEffect(() => {
     if (debate.status !== 'LIVE') return;
     
     const interval = setInterval(() => {
         setViewers(prev => {
-            const change = Math.floor(Math.random() * 7) - 3; // Fluctuate between -3 and +3
+            const change = Math.floor(Math.random() * 7) - 3;
             return Math.max(0, prev + change);
         });
     }, 3000);
@@ -42,12 +42,13 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
       setReplyingTo(nodeId);
       setReplyType(type);
       document.getElementById('input-area')?.scrollIntoView({ behavior: 'smooth' });
+      addToast('INFO', `Replying with ${type}`);
   };
 
   const handleSendMessage = () => {
     if (!inputText.trim()) return;
 
-    let role: 'PRO' | 'CON' | 'JUDGE' = 'PRO'; // Default fallback
+    let role: 'PRO' | 'CON' | 'JUDGE' = 'PRO';
     if (currentUserRole === UserRole.PRO_DEBATER) role = 'PRO';
     else if (currentUserRole === UserRole.CON_DEBATER) role = 'CON';
     else if (currentUserRole === UserRole.JUDGE) role = 'JUDGE';
@@ -62,14 +63,13 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
         author: senderName,
         role: role,
         content: inputText,
-        type: replyingTo ? replyType : 'ARGUMENT', // If no reply, it's a new root argument
+        type: replyingTo ? replyType : 'ARGUMENT',
         timestamp: Date.now(),
         votes: { likes: 0, support: 0 },
         children: []
     };
 
     if (replyingTo) {
-        // Function to recursively find the node and add child
         const addChildToNode = (nodes: ArgumentNode[], targetId: string): ArgumentNode[] => {
             return nodes.map(node => {
                 if (node.id === targetId) {
@@ -84,16 +84,16 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
         setArgumentTree(prev => addChildToNode(prev, replyingTo));
         setReplyingTo(null);
     } else {
-        // Add as root argument
         setArgumentTree(prev => [...prev, newNode]);
     }
 
     setInputText('');
+    addToast('SUCCESS', 'Argument Posted to Chain');
   };
 
   const handleAiAnalysis = async () => {
     setIsAnalyzing(true);
-    // Flatten tree content for analysis
+    addToast('INFO', 'Running Gemini AI Analysis...');
     const flatContent: Message[] = [];
     const traverse = (nodes: ArgumentNode[]) => {
         nodes.forEach(n => {
@@ -106,6 +106,7 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
     const result = await analyzeDebateRound(debate.topic, flatContent);
     setAiAnalysis(result);
     setIsAnalyzing(false);
+    addToast('SUCCESS', 'AI Analysis Complete');
   };
 
   const handleVote = (side: 'pro' | 'con') => {
@@ -113,6 +114,7 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
       ...prev,
       [side]: prev[side] + 1
     }));
+    addToast('SUCCESS', `Vote Registered for ${side.toUpperCase()}`);
   };
 
   const handleForceEnd = () => {
@@ -125,7 +127,6 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] bg-slate-50 w-full">
-      {/* Header Info */}
       <div className="bg-slate-950 border-b border-slate-800 px-6 py-4 flex flex-col md:flex-row justify-between items-start md:items-center shrink-0 shadow-md z-20 gap-4 md:gap-0">
         <div className="flex items-center gap-4">
             <div>
@@ -140,7 +141,7 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
                 </h2>
                 <div className="flex items-center gap-4 mt-1">
                     <span className="text-slate-400 text-xs font-mono bg-slate-900 px-2 py-0.5 rounded border border-slate-800">ID: {debate.id}</span>
-                    <span className="text-indigo-400 text-xs font-bold flex items-center gap-1"><ShieldAlert className="w-3 h-3"/> AI Moderation Active</span>
+                    <span className="text-primary-400 text-xs font-bold flex items-center gap-1"><ShieldAlert className="w-3 h-3"/> AI Moderation Active</span>
                     <span className="text-red-400 text-xs font-bold flex items-center gap-1"><Users className="w-3 h-3"/> {viewers.toLocaleString()} Watching</span>
                 </div>
             </div>
@@ -162,9 +163,7 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
       </div>
 
       <div className="flex-1 flex flex-col md:flex-row overflow-hidden w-full">
-          {/* Main Debate Tree Area - FULL WIDTH */}
           <div className="flex-1 overflow-y-auto bg-slate-100 relative custom-scrollbar order-2 md:order-1">
-              {/* Background Grid Pattern */}
               <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
                    style={{ 
                        backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23000000' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` 
@@ -194,12 +193,10 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
                       ))
                   )}
               </div>
-              <div className="h-40"></div> {/* Spacer */}
+              <div className="h-40"></div>
           </div>
 
-          {/* Right Sidebar: Stats & Controls */}
           <div className="w-full md:w-96 bg-slate-950 border-l border-slate-800 flex flex-col shrink-0 shadow-2xl z-30 order-1 md:order-2">
-              {/* Video Feeds */}
               <div className="grid grid-cols-2 md:grid-rows-2 md:grid-cols-1 h-40 md:h-72 gap-1 bg-black p-1">
                  <div className="relative group overflow-hidden rounded md:rounded-t-lg bg-slate-900">
                      <img src={debate.imageUrl} className="w-full h-full object-cover opacity-60" />
@@ -221,7 +218,6 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
                  </div>
               </div>
 
-              {/* Voting */}
               <div className="p-4 md:p-6 border-b border-slate-800 bg-slate-900">
                   <div className="flex justify-between items-end mb-3">
                       <div className="text-left">
@@ -234,7 +230,6 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
                       </div>
                   </div>
                   
-                  {/* Dynamic Bar */}
                   <div className="h-4 bg-slate-800 rounded-full overflow-hidden flex mb-6 relative border border-slate-700">
                       <div className="absolute inset-0 flex items-center justify-center z-10 text-[10px] font-bold text-white/50 mix-blend-overlay">AUDIENCE SENTIMENT</div>
                       <div className="bg-gradient-to-r from-blue-600 to-blue-400 h-full transition-all duration-700 ease-out relative" style={{ width: `${(votes.pro / (votes.pro + votes.con || 1)) * 100}%` }}>
@@ -253,14 +248,13 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
                   </div>
               </div>
 
-              {/* Input Area */}
               <div id="input-area" className="flex-1 p-4 flex flex-col bg-slate-950">
                   {canType ? (
                       <div className="flex-1 flex flex-col">
                           {replyingTo ? (
-                              <div className="bg-indigo-900/20 p-3 rounded-xl border border-indigo-500/30 mb-3 animate-in fade-in slide-in-from-bottom-2">
+                              <div className="bg-primary-900/20 p-3 rounded-xl border border-primary-500/30 mb-3 animate-in fade-in slide-in-from-bottom-2">
                                   <div className="flex justify-between items-center mb-2">
-                                      <span className="font-bold text-indigo-400 text-xs flex items-center gap-1"><Reply className="w-3 h-3"/> Replying to Thread</span>
+                                      <span className="font-bold text-primary-400 text-xs flex items-center gap-1"><Reply className="w-3 h-3"/> Replying to Thread</span>
                                       <button onClick={() => setReplyingTo(null)} className="text-slate-500 hover:text-white text-xs">Cancel</button>
                                   </div>
                                   <div className="flex gap-1">
@@ -288,12 +282,12 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
                           <textarea 
                              value={inputText}
                              onChange={(e) => setInputText(e.target.value)}
-                             className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none flex-1 mb-3 placeholder:text-slate-600 transition-all"
+                             className="w-full bg-slate-900 border border-slate-800 rounded-xl p-4 text-white text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none flex-1 mb-3 placeholder:text-slate-600 transition-all"
                              placeholder="Construct your argument here..."
                           />
                           <button 
                              onClick={handleSendMessage}
-                             className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-indigo-900/20"
+                             className="w-full bg-primary-600 hover:bg-primary-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-colors shadow-lg shadow-primary-900/20"
                           >
                               <Send className="w-4 h-4" /> Post Argument
                           </button>
@@ -308,7 +302,6 @@ const DebateRoom: React.FC<DebateRoomProps> = ({ debate, currentUserRole, onLeav
                       </div>
                   )}
 
-                  {/* AI Tools */}
                   {(currentUserRole === UserRole.JUDGE || currentUserRole === UserRole.ADMIN) && (
                       <div className="mt-4 pt-4 border-t border-slate-800">
                            <button 

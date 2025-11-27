@@ -1,4 +1,5 @@
 
+
 export enum UserRole {
   VIEWER = 'VIEWER',
   PRO_DEBATER = 'PRO_DEBATER',
@@ -42,7 +43,6 @@ export interface Debate {
     pro: number;
     con: number;
   };
-  // We keep messages for linear transcripts if needed, but primary view is now argumentTree
   messages: Message[];
   argumentTree: ArgumentNode[];
   imageUrl: string;
@@ -68,8 +68,65 @@ export interface DebaterProfile {
 
 export interface Notification {
   id: string;
-  type: 'LOGIN' | 'REPORT' | 'SYSTEM';
+  type: 'LOGIN' | 'REPORT' | 'SYSTEM' | 'REGISTRATION';
   message: string;
   timestamp: number;
   read: boolean;
+  actionRequired?: boolean;
+  targetUserId?: string;
+}
+
+export interface Toast {
+  id: string;
+  type: 'SUCCESS' | 'ERROR' | 'INFO' | 'WARNING';
+  message: string;
+}
+
+// Admin Panel Types & User Profile Extension
+export interface UserProfileDetails {
+  bio: string;
+  expertise: string[]; // e.g., ["Law", "Philosophy"]
+  credentials: string; // e.g., "PhD in Ethics"
+  linkedin?: string;
+  yearsExperience: number;
+  isVerified: boolean;
+  avatarUrl?: string; // New field for profile picture
+}
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  status: 'ACTIVE' | 'BANNED' | 'SUSPENDED' | 'PENDING_APPROVAL';
+  joinedDate: string;
+  country: string;
+  ip: string;
+  profileDetails?: UserProfileDetails; // New field for rich data
+}
+
+export interface Report {
+  id: string;
+  targetId: string;
+  targetType: 'USER' | 'DEBATE' | 'COMMENT';
+  reason: string;
+  reporter: string;
+  status: 'PENDING' | 'RESOLVED' | 'DISMISSED';
+  timestamp: number;
+}
+
+export interface SystemLog {
+  id: string;
+  level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS';
+  message: string;
+  module: string;
+  timestamp: number;
+}
+
+export interface ContentItem {
+  id: string;
+  title: string;
+  type: 'ANNOUNCEMENT' | 'PAGE' | 'BANNER';
+  status: 'PUBLISHED' | 'DRAFT';
+  lastModified: string;
 }
