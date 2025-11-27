@@ -32,13 +32,14 @@ declare module '*.webp' {
   export default src;
 }
 
-// Define process.env for the application
-declare var process: {
-  env: {
+// Augment the NodeJS namespace to include API_KEY in ProcessEnv
+// This avoids redeclaring the global 'process' variable which conflicts with Node.js types
+declare namespace NodeJS {
+  interface ProcessEnv {
     API_KEY: string;
     [key: string]: string | undefined;
   }
-};
+}
 
 interface ImportMetaEnv {
   readonly [key: string]: string | undefined
